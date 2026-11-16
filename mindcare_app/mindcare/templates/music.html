@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Music for your mood{% endblock %}
+{% block content %}
+<h1 class="h2">Music for your mood</h1>
+<p class="text-body-secondary">Choose how you feel and get music styles that may help. Links open a search on YouTube or Spotify, so you can pick what you like.</p>
+
+{% if suggested %}<div class="alert alert-info small py-2">Starting with a suggestion based on your most recent journal or analysis. Choose another mood any time.</div>{% endif %}
+
+<div class="d-flex flex-wrap gap-2 mb-4" role="group" aria-label="Choose your mood">
+  {% for key, m in moods.items() %}
+    <a class="btn {{ 'btn-primary' if key == current.key else 'btn-outline-primary' }} rounded-pill" href="{{ url_for('views.music', mood=key) }}" {{ 'aria-current=true' if key == current.key }}>{{ m.label }}</a>
+  {% endfor %}
+</div>
+
+<div class="card"><div class="card-body p-4">
+  <h2 class="h4">{{ current.label }}</h2>
+  <p class="mb-1"><strong>Goal:</strong> {{ current.goal }}</p>
+  <p class="text-body-secondary">{{ current.why }}</p>
+  <div class="row g-3">
+    {% for s in current.styles %}
+    <div class="col-md-4"><div class="card h-100 border-primary-subtle"><div class="card-body">
+      <h3 class="h6">{{ s.name }}</h3>
+      <div class="d-flex flex-wrap gap-2 mt-2">
+        <a class="btn btn-sm btn-outline-danger" href="{{ s.youtube }}" target="_blank" rel="noopener noreferrer">YouTube<span class="visually-hidden"> (opens in a new tab)</span></a>
+        <a class="btn btn-sm btn-outline-success" href="{{ s.spotify }}" target="_blank" rel="noopener noreferrer">Spotify<span class="visually-hidden"> (opens in a new tab)</span></a>
+      </div>
+    </div></div></div>
+    {% endfor %}
+  </div>
+</div></div>
+
+<div class="alert alert-secondary small mt-4" role="note">
+  Music can support your mood but is not a treatment. Keep volume comfortable, especially with headphones. If heavy or sad songs leave you feeling worse, switch to something calmer.
+</div>
+{% endblock %}

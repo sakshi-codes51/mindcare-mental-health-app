@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}My wellbeing plan{% endblock %}
+{% block content %}
+<h1 class="h2">My wellbeing plan</h1>
+<p class="text-body-secondary">Simple, evidence-informed activities matched to what you have told MindCare. Pick one or two to start. Small steps count.</p>
+
+{% if not screening %}
+  <div class="alert alert-info">These suggestions are general for now. <a href="{{ url_for('screening.take') }}">Take the screening</a> and add journal check-ins to personalise them.</div>
+{% endif %}
+
+<section class="card mb-4" id="breathing" aria-labelledby="breath-h">
+  <div class="card-body text-center py-4">
+    <h2 class="h5" id="breath-h">Guided box breathing</h2>
+    <p class="small text-body-secondary mb-3">Follow the circle: in, hold, out, hold, each for 4 seconds.</p>
+    <div class="breath-wrap"><div class="breath-circle" id="breathCircle" aria-hidden="true"></div></div>
+    <p class="fs-5 fw-semibold mb-1" id="breathText" aria-live="polite">Ready when you are</p>
+    <p class="small text-body-secondary" id="breathCount">Rounds completed: 0</p>
+    <button class="btn btn-primary" type="button" id="breathBtn">Start</button>
+  </div>
+</section>
+
+<div class="row g-3">
+  {% for a in plan %}
+  <div class="col-md-6 col-xl-4">
+    <article class="card h-100 plan-card"><div class="card-body">
+      <div class="d-flex justify-content-between align-items-start">
+        <h2 class="h5 mb-1"><span aria-hidden="true">{{ a.icon }}</span> {{ a.title }}</h2>
+        <span class="badge text-bg-light border">{{ a.minutes }}</span>
+      </div>
+      <p class="small text-primary-emphasis fst-italic">{{ a.reason }}</p>
+      <ol class="small ps-3 mb-0">{% for s in a.steps %}<li class="mb-1">{{ s }}</li>{% endfor %}</ol>
+    </div></article>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="alert alert-secondary small mt-4" role="note">
+  These are self-help suggestions, not treatment. If low mood or anxiety lasts for two weeks or more, or affects your daily life, please see a professional. <a href="{{ url_for('views.help_page') }}">Get help</a>.
+</div>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/breathing.js') }}"></script>{% endblock %}

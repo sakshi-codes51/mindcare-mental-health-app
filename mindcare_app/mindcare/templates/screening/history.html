@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Screening history{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+  <h1 class="h2 mb-0">Screening history</h1>
+  <a class="btn btn-primary" href="{{ url_for('screening.take') }}">Take a new screening</a>
+</div>
+{% if rows %}
+<div class="table-responsive card"><table class="table table-hover align-middle mb-0">
+  <caption class="visually-hidden">Your past screening results</caption>
+  <thead><tr><th scope="col">Date</th><th scope="col">Anxiety</th><th scope="col">Low mood</th><th scope="col">Total</th><th scope="col">Result</th><th scope="col"></th></tr></thead>
+  <tbody>
+  {% for r in rows %}
+    <tr>
+      <td>{{ r['created_at']|dt }}</td>
+      <td>{{ r['anxiety_score'] }}/6</td><td>{{ r['depression_score'] }}/6</td>
+      <td><strong>{{ r['total_score'] }}</strong>/12</td>
+      <td><span class="badge text-bg-{{ styles[r['category']] }}">{{ r['category'] }}</span>{% if r['safety_flag'] %} <span class="badge text-bg-danger">Safety flag</span>{% endif %}</td>
+      <td><a href="{{ url_for('screening.result', screening_id=r['id']) }}">View</a></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+{% else %}
+  <div class="card"><div class="card-body text-center py-5">
+    <p class="mb-3">You have not taken a screening yet.</p>
+    <a class="btn btn-primary" href="{{ url_for('screening.take') }}">Start your first screening</a>
+  </div></div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Screening result{% endblock %}
+{% block content %}
+<div class="row justify-content-center"><div class="col-lg-9">
+  <p class="text-body-secondary mb-1">Screening taken {{ row['created_at']|dt }}</p>
+  <h1 class="h2 mb-3">Your screening result</h1>
+
+  {% if res.safety_flag %}
+    <div class="alert alert-danger border-2" role="alert">
+      <h2 class="h5">Please reach out for support now</h2>
+      <p class="mb-2">You said you have had thoughts of being better off dead or of hurting yourself. These feelings can be overwhelming, and you deserve support from a real person.
+        If you may act on them, call <a class="alert-link" href="tel:112">112</a> now.</p>
+      <ul class="mb-0">
+        {% for h in helplines %}<li><strong>{{ h.name }}:</strong> <a class="alert-link" href="tel:{{ h.tel }}">{{ h.numbers[0] }}</a> ({{ h.hours }})</li>{% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+
+  <div class="card border-{{ style }} border-2 mb-4">
+    <div class="card-body p-4">
+      <div class="d-flex flex-wrap align-items-center gap-3">
+        <span class="badge text-bg-{{ style }} fs-5 px-3 py-2">{{ res.category }}</span>
+        <span class="fs-5">Total score <strong>{{ res.total }}</strong> / 12 <span class="text-body-secondary">({{ res.band }} range)</span></span>
+      </div>
+      <p class="mt-3 mb-0">{{ meaning }}</p>
+      {% if prev %}
+        <p class="small text-body-secondary mt-3 mb-0">Last time: {{ prev['total_score'] }} / 12 ({{ prev['category'] }}).
+          {% set d = res.total - prev['total_score'] %}
+          {% if d < 0 %}Your score is {{ -d }} point{{ 's' if d != -1 }} lower this time.{% elif d > 0 %}Your score is {{ d }} point{{ 's' if d != 1 }} higher this time.{% else %}Your score is unchanged.{% endif %}</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-6"><div class="card h-100"><div class="card-body">
+      <h2 class="h6">Anxiety (questions 1 and 2)</h2>
+      <p class="display-6 mb-1">{{ res.anxiety }}<span class="fs-6 text-body-secondary"> / 6</span></p>
+      <progress class="w-100" max="6" value="{{ res.anxiety }}" aria-label="Anxiety score {{ res.anxiety }} of 6"></progress>
+      <p class="small mb-0 mt-2">{% if res.anxiety_positive %}<strong>Positive screen</strong> (3 or more). Worth discussing with a professional.{% else %}Below the cut-off of 3.{% endif %}</p>
+    </div></div></div>
+    <div class="col-md-6"><div class="card h-100"><div class="card-body">
+      <h2 class="h6">Low mood (questions 3 and 4)</h2>
+      <p class="display-6 mb-1">{{ res.depression }}<span class="fs-6 text-body-secondary"> / 6</span></p>
+      <progress class="w-100" max="6" value="{{ res.depression }}" aria-label="Low mood score {{ res.depression }} of 6"></progress>
+      <p class="small mb-0 mt-2">{% if res.depression_positive %}<strong>Positive screen</strong> (3 or more). Worth discussing with a professional.{% else %}Below the cut-off of 3.{% endif %}</p>
+    </div></div></div>
+  </div>
+
+  {% if res.context_flags %}
+  <div class="card mb-4"><div class="card-body">
+    <h2 class="h6">Other things you flagged</h2>
+    <p class="small text-body-secondary mb-2">Not part of the validated score. Used to tailor your suggestions.</p>
+    {% for f in res.context_flags %}<span class="badge text-bg-secondary me-1">{{ flag_labels[f] }}</span>{% endfor %}
+  </div></div>
+  {% endif %}
+
+  <div class="card mb-4"><div class="card-body">
+    <h2 class="h5">Recommended next steps</h2>
+    <ul class="mb-0">{% for r in recs %}<li class="mb-1">{{ r }}</li>{% endfor %}</ul>
+  </div></div>
+
+  {% if res.category != 'Low Concern' and not res.safety_flag %}
+  <div class="card mb-4"><div class="card-body">
+    <h2 class="h5">Talk to someone</h2>
+    <ul class="mb-2">
+      {% for h in helplines %}<li><strong>{{ h.name }}:</strong> <a href="tel:{{ h.tel }}">{{ h.numbers[0] }}</a> ({{ h.hours }})</li>{% endfor %}
+    </ul>
+    <a href="{{ url_for('views.help_page') }}">Find professional help</a>
+  </div></div>
+  {% endif %}
+
+  <div class="alert alert-secondary small" role="note">
+    <strong>Important:</strong> this is a preliminary screening result, <strong>not a medical diagnosis</strong>. Only a qualified mental health professional can diagnose a condition. If you are worried about how you feel, please speak with one.
+  </div>
+
+  <div class="d-flex flex-wrap gap-2">
+    <a class="btn btn-primary" href="{{ url_for('views.wellbeing_page') }}">My wellbeing plan</a>
+    <a class="btn btn-outline-primary" href="{{ url_for('views.chat') }}">Talk to the support chat</a>
+    <a class="btn btn-outline-secondary" href="{{ url_for('screening.history') }}">Past results</a>
+    <a class="btn btn-outline-secondary" href="{{ url_for('views.dashboard') }}">Dashboard</a>
+  </div>
+</div></div>
+{% endblock %}

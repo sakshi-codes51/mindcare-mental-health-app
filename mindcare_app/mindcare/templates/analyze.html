@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Emotional analysis{% endblock %}
+{% block content %}
+<h1 class="h2">Emotional-state analysis</h1>
+<p class="text-body-secondary">Write how you are feeling in your own words. MindCare estimates the emotions and tone in your writing and shows which words shaped the result.</p>
+
+<div class="row g-4">
+  <div class="col-lg-6">
+    {% if summary %}
+    <div class="card mb-3"><div class="card-body">
+      <h2 class="h5">Your last {{ summary.days }} days</h2>
+      <p class="small text-body-secondary mb-2">From {{ summary.n }} journal check-in{{ 's' if summary.n != 1 }}.</p>
+      <ul class="mb-2">
+        <li>Most common emotions:
+          {% for emo, count in summary.top_emotions %}<span class="badge text-bg-info me-1">{{ emotion_emoji[emo] }} {{ emo|capitalize }} ({{ count }})</span>{% else %}<span class="text-body-secondary">add notes to your check-ins to see this</span>{% endfor %}
+        </li>
+        <li>Average mood: <strong>{{ summary.avg_mood }}/5</strong>. Trend: <strong>{{ summary.trend }}</strong>.</li>
+        <li>Overall distress in your writing: <strong>{{ summary.distress }}</strong>.</li>
+      </ul>
+      {% if summary.distress == 'high' or summary.trend == 'declining' %}
+        <p class="small mb-0">Things seem to be getting harder lately. Consider talking to someone you trust, or see <a href="{{ url_for('views.help_page') }}">professional options</a>.</p>
+      {% endif %}
+    </div></div>
+    {% endif %}
+
+    <div class="card"><div class="card-body">
+      <h2 class="h5">Analyse some text</h2>
+      <form method="post" action="{{ url_for('views.analyze_page') }}">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <label class="form-label" for="text">How are you feeling?</label>
+        <textarea class="form-control mb-2" id="text" name="text" rows="6" minlength="10" maxlength="3000" required placeholder="For example: I've been really overwhelmed with exams and I can't switch my mind off at night..."></textarea>
+        <div class="form-text mb-3">Saved privately to your account. You can delete any analysis afterwards.</div>
+        <button class="btn btn-primary" type="submit">Analyse</button>
+      </form>
+    </div></div>
+
+    {% if history %}
+    <div class="card mt-3"><div class="card-body">
+      <h2 class="h6">Recent analyses</h2>
+      <ul class="list-unstyled mb-0">
+        {% for h in history %}
+          <li class="mb-2"><a href="{{ url_for('views.analysis_result', analysis_id=h['id']) }}">{{ emotion_emoji[h['primary_emotion']] }} {{ h['primary_emotion']|capitalize }}</a>
+            <span class="small text-body-secondary">&middot; {{ h['created_at']|dt('%d %b') }} &middot; "{{ h['snippet'] }}..."</span></li>
+        {% endfor %}
+      </ul>
+    </div></div>
+    {% endif %}
+  </div>
+
+  <div class="col-lg-6">
+    {% if result %}
+      {% set row = result.row %}
+      {% if row['crisis'] %}
+        <div class="alert alert-danger border-2" role="alert">
+          <h2 class="h5">You're not alone</h2>
+          <p class="mb-2">Your words suggest you may be in a lot of pain. Please talk to someone now. If you might act on thoughts of harming yourself, call <a class="alert-link" href="tel:112">112</a>.</p>
+          <ul class="mb-0">{% for h in helplines %}<li><strong>{{ h.name }}:</strong> <a class="alert-link" href="tel:{{ h.tel }}">{{ h.numbers[0] }}</a> ({{ h.hours }})</li>{% endfor %}</ul>
+        </div>
+      {% endif %}
+      <div class="card result-card"><div class="card-body">
+        <h2 class="h5">Result</h2>
+        <p class="note-text small text-body-secondary border-start ps-3">{{ row['text'] }}</p>
+        <div class="d-flex align-items-center gap-3 my-3">
+          <div class="display-4" aria-hidden="true">{{ emotion_emoji[row['primary_emotion']] }}</div>
+          <div>
+            <div class="fs-4 fw-semibold">{{ row['primary_emotion']|capitalize }}</div>
+            <div class="small text-body-secondary">Tone: {{ 'positive' if row['sentiment'] > 0.25 else 'negative' if row['sentiment'] < -0.25 else 'neutral / mixed' }} ({{ '%+.2f'|format(row['sentiment']) }})</div>
+          </div>
+          <span class="badge ms-auto fs-6 text-bg-{{ {'low': 'success', 'moderate': 'warning', 'high': 'danger'}[row['distress']] }}">Distress: {{ row['distress'] }}</span>
+        </div>
+
+        <h3 class="h6">Emotion mix</h3>
+        {% for emo, p in result.distribution if p >= 0.03 %}
+          <div class="d-flex align-items-center gap-2 mb-1">
+            <label class="emo-label" for="p-{{ emo }}">{{ emotion_emoji[emo] }} {{ emo|capitalize }}</label>
+            <progress id="p-{{ emo }}" class="flex-grow-1" max="100" value="{{ (p * 100)|round|int }}"></progress>
+            <span class="small emo-pct">{{ (p * 100)|round|int }}%</span>
+          </div>
+        {% endfor %}
+
+        {% if result.evidence %}
+          <h3 class="h6 mt-3">Words and phrases that influenced this</h3>
+          {% for w in result.evidence %}<span class="badge text-bg-light border me-1">{{ w }}</span>{% endfor %}
+        {% endif %}
+
+        <hr>
+        <p class="small mb-2">
+          {% if row['distress'] == 'low' %}Your writing shows little distress. Keep doing what helps you.
+          {% elif row['distress'] == 'moderate' %}Your writing shows some distress. Small coping steps and talking to someone can help.
+          {% else %}Your writing shows strong distress. Please consider reaching out to someone you trust or a professional.{% endif %}
+        </p>
+        <div class="d-flex flex-wrap gap-2">
+          <a class="btn btn-sm btn-primary" href="{{ url_for('views.wellbeing_page') }}">Wellbeing plan</a>
+          <a class="btn btn-sm btn-outline-primary" href="{{ url_for('views.music', mood=result.music_key) }}">Music for this mood</a>
+          <a class="btn btn-sm btn-outline-primary" href="{{ url_for('views.chat') }}">Talk about it</a>
+          {% if row['distress'] == 'high' %}<a class="btn btn-sm btn-outline-danger" href="{{ url_for('views.help_page') }}">Get help</a>{% endif %}
+        </div>
+        <p class="text-body-secondary small mt-3 mb-0">This is an automated estimate of emotional tone. It can be wrong and is not a diagnosis.</p>
+        <form class="mt-2" method="post" action="{{ url_for('views.delete_analysis', analysis_id=row['id']) }}" data-confirm="Delete this analysis?">
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+          <button class="btn btn-link btn-sm text-danger p-0" type="submit">Delete this analysis</button>
+        </form>
+      </div></div>
+    {% else %}
+      <div class="card h-100"><div class="card-body text-body-secondary">
+        <h2 class="h5">What you'll see</h2>
+        <ul class="mb-0">
+          <li>The main emotion, and how the others mix in.</li>
+          <li>Whether the tone is positive, negative or mixed.</li>
+          <li>A distress level (low, moderate or high).</li>
+          <li>The exact words that shaped the result.</li>
+        </ul>
+      </div></div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

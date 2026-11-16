@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}My profile{% endblock %}
+{% block content %}
+<div class="row justify-content-center"><div class="col-lg-8">
+  <h1 class="h3 mb-4">My profile</h1>
+
+  {% if errors %}<div class="alert alert-danger" role="alert"><ul class="mb-0">{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+
+  <div class="card mb-4"><div class="card-body">
+    <h2 class="h5">Details</h2>
+    <form method="post" action="{{ url_for('auth.profile') }}">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <div class="mb-3">
+        <label class="form-label" for="name">Name</label>
+        <input class="form-control" id="name" name="name" maxlength="60" required value="{{ g.user['name'] }}">
+      </div>
+      <div class="mb-3">
+        <label class="form-label" for="email">Email</label>
+        <input class="form-control" id="email" value="{{ g.user['email'] }}" disabled>
+      </div>
+      <div class="row">
+        <div class="col-sm-6 mb-3">
+          <label class="form-label" for="user_type">I am a</label>
+          <select class="form-select" id="user_type" name="user_type">
+            {% for value, label in user_types %}<option value="{{ value }}" {{ 'selected' if g.user['user_type'] == value }}>{{ label }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-sm-6 mb-3">
+          <label class="form-label" for="age_group">Age group</label>
+          <select class="form-select" id="age_group" name="age_group">
+            {% for a in age_groups %}<option value="{{ a }}" {{ 'selected' if g.user['age_group'] == a }}>{{ a }}</option>{% endfor %}
+          </select>
+        </div>
+      </div>
+      <button class="btn btn-primary" type="submit">Save changes</button>
+    </form>
+  </div></div>
+
+  <div class="card mb-4"><div class="card-body">
+    <h2 class="h5">Change password</h2>
+    <form method="post" action="{{ url_for('auth.change_password') }}">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <div class="mb-3"><label class="form-label" for="current">Current password</label>
+        <input class="form-control" id="current" type="password" name="current" required autocomplete="current-password"></div>
+      <div class="row">
+        <div class="col-sm-6 mb-3"><label class="form-label" for="new">New password</label>
+          <input class="form-control" id="new" type="password" name="new" required autocomplete="new-password"></div>
+        <div class="col-sm-6 mb-3"><label class="form-label" for="confirm">Confirm new password</label>
+          <input class="form-control" id="confirm" type="password" name="confirm" required autocomplete="new-password"></div>
+      </div>
+      <button class="btn btn-outline-primary" type="submit">Update password</button>
+    </form>
+  </div></div>
+
+  <div class="card border-danger"><div class="card-body">
+    <h2 class="h5 text-danger">Delete my account</h2>
+    <p class="small">This permanently deletes your account, screenings, journal entries, analyses and chat history. It cannot be undone.</p>
+    <form method="post" action="{{ url_for('auth.delete_account') }}" data-confirm="Permanently delete your account and all data?">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <div class="mb-3"><label class="form-label" for="del-password">Enter your password to confirm</label>
+        <input class="form-control" id="del-password" type="password" name="password" required autocomplete="current-password"></div>
+      <button class="btn btn-danger" type="submit">Delete account and data</button>
+    </form>
+  </div></div>
+</div></div>
+{% endblock %}

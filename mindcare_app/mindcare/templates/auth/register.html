@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Create account{% endblock %}
+{% block content %}
+<div class="row justify-content-center"><div class="col-md-8 col-lg-6">
+  <div class="card shadow-sm"><div class="card-body p-4">
+    <h1 class="h3 mb-1">Create your account</h1>
+    <p class="text-body-secondary">Free and private. Takes under a minute.</p>
+
+    {% if errors %}
+      <div class="alert alert-danger" role="alert"><ul class="mb-0">{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul></div>
+    {% endif %}
+
+    <form method="post" novalidate>
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <div class="mb-3">
+        <label class="form-label" for="name">Name</label>
+        <input class="form-control" id="name" name="name" maxlength="60" required autocomplete="name" value="{{ form.get('name', '') }}">
+      </div>
+      <div class="mb-3">
+        <label class="form-label" for="email">Email</label>
+        <input class="form-control" id="email" type="email" name="email" maxlength="254" required autocomplete="email" value="{{ form.get('email', '') }}">
+      </div>
+      <div class="row">
+        <div class="col-sm-6 mb-3">
+          <label class="form-label" for="user_type">I am a</label>
+          <select class="form-select" id="user_type" name="user_type">
+            {% for value, label in user_types %}<option value="{{ value }}" {{ 'selected' if form.get('user_type') == value }}>{{ label }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-sm-6 mb-3">
+          <label class="form-label" for="age_group">Age group</label>
+          <select class="form-select" id="age_group" name="age_group" required>
+            <option value="">Choose...</option>
+            {% for a in age_groups %}<option value="{{ a }}" {{ 'selected' if form.get('age_group') == a }}>{{ a }}</option>{% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label" for="password">Password</label>
+        <input class="form-control" id="password" type="password" name="password" required autocomplete="new-password" aria-describedby="pwhelp">
+        <div id="pwhelp" class="form-text">At least 8 characters, with letters and numbers.</div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label" for="confirm">Confirm password</label>
+        <input class="form-control" id="confirm" type="password" name="confirm" required autocomplete="new-password">
+      </div>
+      <div class="form-check mb-2">
+        <input class="form-check-input" type="checkbox" id="adult" name="adult" required>
+        <label class="form-check-label" for="adult">I am 18 years old or older.</label>
+      </div>
+      <div class="form-check mb-3">
+        <input class="form-check-input" type="checkbox" id="ack" name="ack" required>
+        <label class="form-check-label" for="ack">I understand MindCare gives preliminary screening results, not medical diagnoses, and is not an emergency service.</label>
+      </div>
+      <button class="btn btn-primary w-100" type="submit">Create account</button>
+    </form>
+    <p class="text-center mt-3 mb-0">Already registered? <a href="{{ url_for('auth.login') }}">Log in</a></p>
+  </div></div>
+</div></div>
+{% endblock %}

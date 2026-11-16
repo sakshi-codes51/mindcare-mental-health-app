@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+<section class="hero rounded-4 p-4 p-md-5 mb-5">
+  <div class="row align-items-center">
+    <div class="col-lg-8">
+      <p class="text-uppercase fw-semibold small mb-2 text-primary">Preliminary screening &middot; Support &middot; Guidance</p>
+      <h1 class="display-5 fw-bold">{{ app_title }}</h1>
+      <p class="lead mt-3">Notice early signs of stress, anxiety or low mood. Understand how you have been feeling, get gentle support right away, and find your way to professional help.</p>
+      <div class="d-flex flex-wrap gap-2 mt-4">
+        {% if g.user %}
+          <a class="btn btn-primary btn-lg" href="{{ url_for('views.dashboard') }}">Go to my dashboard</a>
+        {% else %}
+          <a class="btn btn-primary btn-lg" href="{{ url_for('auth.register') }}">Get started, it's free</a>
+          <a class="btn btn-outline-primary btn-lg" href="{{ url_for('auth.login') }}">Log in</a>
+        {% endif %}
+        <a class="btn btn-link btn-lg" href="{{ url_for('views.about') }}">How it works</a>
+      </div>
+    </div>
+    <div class="col-lg-4 d-none d-lg-block text-center hero-art" aria-hidden="true">&#127793;</div>
+  </div>
+</section>
+
+<section class="mb-5" aria-labelledby="why">
+  <h2 id="why" class="h3 mb-4">Why one integrated platform?</h2>
+  <div class="row g-3">
+    <div class="col-md-6 col-lg-3"><div class="card h-100"><div class="card-body">
+      <h3 class="h6">Fragmented tools</h3><p class="mb-0 small">Most apps only screen <em>or</em> only chat. MindCare brings screening, support, tracking and guidance together.</p></div></div></div>
+    <div class="col-md-6 col-lg-3"><div class="card h-100"><div class="card-body">
+      <h3 class="h6">Recognition gap</h3><p class="mb-0 small">Early warning signs are easy to miss. A short validated questionnaire helps you see where you stand.</p></div></div></div>
+    <div class="col-md-6 col-lg-3"><div class="card h-100"><div class="card-body">
+      <h3 class="h6">Access gap</h3><p class="mb-0 small">Cost, stigma and distance keep people from help. MindCare is free, private and available any time, with routes to free helplines.</p></div></div></div>
+    <div class="col-md-6 col-lg-3"><div class="card h-100"><div class="card-body">
+      <h3 class="h6">No continuous view</h3><p class="mb-0 small">Daily mood check-ins and charts show patterns over weeks, not just one bad day.</p></div></div></div>
+  </div>
+</section>
+
+<section class="mb-5" aria-labelledby="inside">
+  <h2 id="inside" class="h3 mb-4">What's inside</h2>
+  <div class="row g-3">
+    {% for icon, title, text in [
+      ('&#128203;', 'Risk screening', 'The PHQ-4 questionnaire with clear Low, Moderate or High Concern results and next steps.'),
+      ('&#128172;', 'Emotional-state analysis', 'Write freely and see the emotions and tone in your words, with the evidence shown.'),
+      ('&#129302;', 'AI support chat', 'A supportive chatbot with breathing, grounding and coping guidance. It always shows crisis help when needed.'),
+      ('&#128211;', 'Mood journal', 'Daily check-ins with mood, sleep and notes, analysed for patterns.'),
+      ('&#127793;', 'Personal wellbeing plan', 'Exercises matched to what you reported, for students and professionals.'),
+      ('&#127925;', 'Music for your mood', 'Music styles that suit how you feel, with one-tap search links.'),
+      ('&#128200;', 'Interactive dashboard', 'Mood trends, emotion mix, screening history and plain-language insights.'),
+      ('&#128222;', 'Professional guidance', 'Helplines, when to seek help, who to see, and low-cost options.')] %}
+    <div class="col-sm-6 col-lg-3">
+      <div class="card h-100 feature"><div class="card-body">
+        <div class="fs-2 mb-2" aria-hidden="true">{{ icon|safe }}</div>
+        <h3 class="h6">{{ title }}</h3><p class="small mb-0">{{ text }}</p>
+      </div></div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="alert alert-info" role="note">
+  <strong>Important:</strong> MindCare provides preliminary screening results, not medical diagnoses. If you are in distress or thinking about harming yourself, please contact a helpline or emergency services right away. See <a href="{{ url_for('views.help_page') }}">Get help</a>.
+</section>
+{% endblock %}

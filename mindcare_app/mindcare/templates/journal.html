@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Mood journal{% endblock %}
+{% block content %}
+<h1 class="h2 mb-3">Mood journal</h1>
+<div class="row g-4">
+  <div class="col-lg-5">
+    <div class="card"><div class="card-body">
+      <h2 class="h5">How are you feeling?</h2>
+      {% if errors %}<div class="alert alert-danger" role="alert"><ul class="mb-0">{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+      <form method="post" novalidate>
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <fieldset class="mb-3">
+          <legend class="form-label fs-6">Mood</legend>
+          <div class="mood-scale">
+            {% for v in [1,2,3,4,5] %}
+              <input type="radio" class="btn-check" name="mood" id="mood-{{ v }}" value="{{ v }}" {{ 'checked' if form.get('mood') == v|string }} required>
+              <label class="btn btn-outline-primary mood-btn" for="mood-{{ v }}"><span class="mood-emoji" aria-hidden="true">{{ mood_emoji[v] }}</span><span class="small">{{ mood_labels[v] }}</span></label>
+            {% endfor %}
+          </div>
+        </fieldset>
+        <div class="row">
+          <div class="col-6 mb-3">
+            <label class="form-label" for="entry_date">Date</label>
+            <input class="form-control" type="date" id="entry_date" name="entry_date" value="{{ form.get('entry_date', today) }}" data-server-today="{{ today }}">
+          </div>
+          <div class="col-6 mb-3">
+            <label class="form-label" for="sleep_hours">Hours slept</label>
+            <input class="form-control" type="number" id="sleep_hours" name="sleep_hours" min="0" max="24" step="0.5" placeholder="optional" value="{{ form.get('sleep_hours', '') }}">
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="stress">Stress level (optional)</label>
+          <select class="form-select" id="stress" name="stress">
+            <option value="">Skip</option>
+            {% for v, l in [(1,'1 - Very calm'),(2,'2 - Mild'),(3,'3 - Moderate'),(4,'4 - High'),(5,'5 - Very high')] %}
+              <option value="{{ v }}" {{ 'selected' if form.get('stress') == v|string }}>{{ l }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="note">Notes (optional)</label>
+          <textarea class="form-control" id="note" name="note" rows="5" maxlength="2000" aria-describedby="prompt-help" placeholder="What is on your mind?">{{ form.get('note', '') }}</textarea>
+          <div id="prompt-help" class="form-text">Prompt: {{ prompt }} Your note is analysed privately for emotional tone.</div>
+        </div>
+        <button class="btn btn-primary w-100" type="submit">Save check-in</button>
+      </form>
+    </div></div>
+  </div>
+
+  <div class="col-lg-7">
+    <h2 class="h5">Your entries</h2>
+    {% if entries %}
+      {% for e in entries %}
+      <div class="card mb-3 entry"><div class="card-body">
+        <div class="d-flex justify-content-between align-items-start gap-2">
+          <div>
+            <span class="fs-4" aria-hidden="true">{{ mood_emoji[e['mood']] }}</span>
+            <strong>{{ mood_labels[e['mood']] }}</strong>
+            <span class="text-body-secondary small ms-2">{{ e['entry_date']|dateonly }}</span>
+          </div>
+          <form method="post" action="{{ url_for('views.delete_entry', entry_id=e['id']) }}" data-confirm="Delete this entry?">
+            <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+            <button class="btn btn-sm btn-outline-secondary" type="submit" aria-label="Delete entry from {{ e['entry_date'] }}">Delete</button>
+          </form>
+        </div>
+        <div class="mt-1">
+          {% if e['sleep_hours'] is not none %}<span class="badge text-bg-light border">{{ e['sleep_hours'] }} h sleep</span>{% endif %}
+          {% if e['stress'] %}<span class="badge text-bg-light border">Stress {{ e['stress'] }}/5</span>{% endif %}
+          {% if e['primary_emotion'] %}<span class="badge text-bg-info">{{ emotion_emoji[e['primary_emotion']] }} {{ e['primary_emotion']|capitalize }}</span>{% endif %}
+        </div>
+        {% if e['note'] %}<p class="mt-2 mb-0 note-text">{{ e['note'] }}</p>{% endif %}
+      </div></div>
+      {% endfor %}
+      {% if pages > 1 %}
+      <nav aria-label="Journal pages"><ul class="pagination">
+        <li class="page-item {{ 'disabled' if page <= 1 }}"><a class="page-link" href="{{ url_for('views.journal', page=page-1) }}">Newer</a></li>
+        <li class="page-item disabled"><span class="page-link">Page {{ page }} of {{ pages }}</span></li>
+        <li class="page-item {{ 'disabled' if page >= pages }}"><a class="page-link" href="{{ url_for('views.journal', page=page+1) }}">Older</a></li>
+      </ul></nav>
+      {% endif %}
+    {% else %}
+      <div class="card"><div class="card-body text-center text-body-secondary py-5">No entries yet. Your first check-in takes under a minute.</div></div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

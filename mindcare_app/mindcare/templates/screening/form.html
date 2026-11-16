@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Screening{% endblock %}
+
+{% macro question(q, number, options, previous, missing) %}
+<fieldset class="question mb-3 p-3 rounded-3 border {{ 'border-danger border-2' if q.id in missing }}">
+  <legend class="fs-6 fw-semibold mb-2">{{ number }}. {{ q.text }}</legend>
+  <div class="d-grid gap-2 d-md-flex">
+    {% for value, label in options %}
+      <input type="radio" class="btn-check" name="{{ q.id }}" id="{{ q.id }}-{{ value }}" value="{{ value }}"
+             {{ 'checked' if previous.get(q.id) == value|string }} required>
+      <label class="btn btn-outline-primary flex-fill" for="{{ q.id }}-{{ value }}">{{ label }}</label>
+    {% endfor %}
+  </div>
+  {% if q.id in missing %}<div class="text-danger small mt-2">Please choose an answer.</div>{% endif %}
+</fieldset>
+{% endmacro %}
+
+{% block content %}
+<div class="row justify-content-center"><div class="col-lg-9">
+  <h1 class="h2">Mental health screening</h1>
+  <p class="text-body-secondary">Takes about 2 minutes. Answer based on the <strong>last 2 weeks</strong>. There are no right or wrong answers.</p>
+  <div class="alert alert-info small" role="note">
+    This is a <strong>preliminary screening</strong>, not a diagnosis. Your answers are private to your account.
+  </div>
+
+  <form method="post" novalidate>
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+
+    <h2 class="h5 mt-4">Part 1: Over the last 2 weeks, how often have you been bothered by...</h2>
+    <p class="small text-body-secondary">PHQ-4, a validated screener. Only this part determines your result category.</p>
+    {% for q in phq4 %}{{ question(q, loop.index, options, previous, missing) }}{% endfor %}
+
+    <h2 class="h5 mt-4">Part 2: Safety check</h2>
+    <p class="small text-body-secondary">Over the last 2 weeks, how often have you been bothered by...</p>
+    {{ question(safety, 5, options, previous, missing) }}
+
+    <h2 class="h5 mt-4">Part 3: Everyday wellbeing</h2>
+    <p class="small text-body-secondary">These extra questions are not part of the validated score. They only help personalise your suggestions. Over the last 2 weeks, how often have you been bothered by...</p>
+    {% for q in context %}{{ question(q, loop.index + 5, options, previous, missing) }}{% endfor %}
+
+    <div class="d-grid d-md-flex gap-2 mt-4">
+      <button class="btn btn-primary btn-lg" type="submit">See my result</button>
+      <a class="btn btn-outline-secondary btn-lg" href="{{ url_for('screening.history') }}">Past results</a>
+    </div>
+  </form>
+</div></div>
+{% endblock %}

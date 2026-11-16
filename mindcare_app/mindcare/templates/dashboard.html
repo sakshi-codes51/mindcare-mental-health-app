@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+  <div>
+    <h1 class="h2 mb-0">Hello, {{ g.user['name'].split(' ')[0] }}</h1>
+    <p class="text-body-secondary mb-0">Here is how things have been looking lately.</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a class="btn btn-primary" href="{{ url_for('views.journal') }}">Add a check-in</a>
+    <a class="btn btn-outline-primary" href="{{ url_for('screening.take') }}">Take screening</a>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3"><div class="card stat h-100"><div class="card-body">
+    <div class="stat-label">Average mood (7 days)</div>
+    <div class="stat-value">{% if stats.avg_mood_7d is not none %}{{ stats.avg_mood_7d }}<span class="fs-6 text-body-secondary">/5</span>{% else %}&ndash;{% endif %}</div>
+  </div></div></div>
+  <div class="col-6 col-lg-3"><div class="card stat h-100"><div class="card-body">
+    <div class="stat-label">Check-in streak</div>
+    <div class="stat-value">{{ stats.streak }}<span class="fs-6 text-body-secondary"> day{{ 's' if stats.streak != 1 }}</span></div>
+  </div></div></div>
+  <div class="col-6 col-lg-3"><div class="card stat h-100"><div class="card-body">
+    <div class="stat-label">Check-ins (30 days)</div>
+    <div class="stat-value">{{ stats.entries_30d }}</div>
+  </div></div></div>
+  <div class="col-6 col-lg-3"><div class="card stat h-100"><div class="card-body">
+    <div class="stat-label">Average sleep (7 days)</div>
+    <div class="stat-value">{% if stats.avg_sleep_7d is not none %}{{ stats.avg_sleep_7d }}<span class="fs-6 text-body-secondary"> h</span>{% else %}&ndash;{% endif %}</div>
+  </div></div></div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-lg-4">
+    <div class="card h-100"><div class="card-body">
+      <h2 class="h6 text-uppercase text-body-secondary">Latest screening</h2>
+      {% if latest %}
+        {% set cls = {'Low Concern': 'success', 'Moderate Concern': 'warning', 'High Concern': 'danger'}[latest.category] %}
+        <span class="badge text-bg-{{ cls }} fs-6 mb-2">{{ latest.category }}</span>
+        <p class="mb-1">Score <strong>{{ latest.total_score }}</strong>/12 &middot; {{ latest.created_at|dt('%d %b %Y') }}</p>
+        <a href="{{ url_for('screening.result', screening_id=latest.id) }}">View details</a>
+        {% if latest.category == 'High Concern' %}
+          <div class="alert alert-danger small mt-3 mb-0" role="note">Speaking with a professional is recommended. <a class="alert-link" href="{{ url_for('views.help_page') }}">Find help</a>.</div>
+        {% endif %}
+      {% else %}
+        <p>You haven't taken the screening yet. It takes about 2 minutes.</p>
+        <a class="btn btn-sm btn-primary" href="{{ url_for('screening.take') }}">Start screening</a>
+      {% endif %}
+    </div></div>
+  </div>
+  <div class="col-lg-8">
+    <div class="card h-100"><div class="card-body">
+      <h2 class="h6 text-uppercase text-body-secondary">Insights</h2>
+      <ul class="mb-0">{% for i in insights %}<li class="mb-1">{{ i }}</li>{% endfor %}</ul>
+      <hr>
+      <p class="mb-0 small"><strong>Today's prompt:</strong> {{ prompt }} <a href="{{ url_for('views.journal') }}">Write about it</a></p>
+    </div></div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-lg-8">
+    <div class="card h-100"><div class="card-body">
+      <h2 class="h6">Mood over the last 30 days</h2>
+      <div class="chart-box"><canvas id="moodChart" role="img" aria-label="Line chart of your daily average mood over the last 30 days">Your browser can't show charts. Open the Journal to see your entries.</canvas></div>
+      <p class="chart-empty text-body-secondary small d-none" id="moodEmpty">No check-ins in the last 30 days yet. <a href="{{ url_for('views.journal') }}">Add one</a> to see your trend.</p>
+    </div></div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card h-100"><div class="card-body">
+      <h2 class="h6">Emotions in your writing</h2>
+      <div class="chart-box"><canvas id="emotionChart" role="img" aria-label="Doughnut chart of emotions detected in your journal notes and analyses">Chart unavailable.</canvas></div>
+      <p class="chart-empty text-body-secondary small d-none" id="emotionEmpty">Write a journal note or run an analysis to see your emotion mix.</p>
+    </div></div>
+  </div>
+  <div class="col-12">
+    <div class="card"><div class="card-body">
+      <h2 class="h6">Screening scores over time</h2>
+      <div class="chart-box chart-box-sm"><canvas id="screeningChart" role="img" aria-label="Line chart of your screening scores over time">Chart unavailable.</canvas></div>
+      <p class="chart-empty text-body-secondary small d-none" id="screeningEmpty">Take the screening more than once to see how your scores change.</p>
+    </div></div>
+  </div>
+</div>
+
+<div class="row g-3">
+  {% for icon, title, text, endpoint in [
+    ('&#127793;', 'Wellbeing plan', 'Exercises matched to you.', 'views.wellbeing_page'),
+    ('&#128172;', 'Support chat', 'Talk it through.', 'views.chat'),
+    ('&#127925;', 'Music for my mood', 'Find the right sound.', 'views.music'),
+    ('&#128222;', 'Get professional help', 'Helplines and guidance.', 'views.help_page')] %}
+  <div class="col-6 col-lg-3">
+    <a class="card h-100 text-decoration-none feature" href="{{ url_for(endpoint) }}"><div class="card-body">
+      <div class="fs-3" aria-hidden="true">{{ icon|safe }}</div><div class="fw-semibold">{{ title }}</div><div class="small text-body-secondary">{{ text }}</div>
+    </div></a>
+  </div>
+  {% endfor %}
+</div>
+
+<script type="application/json" id="chart-data">{{ chart_data|tojson }}</script>
+{% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.js"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

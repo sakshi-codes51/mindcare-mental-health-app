@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Get help{% endblock %}
+{% block content %}
+<div class="row justify-content-center"><div class="col-lg-10">
+  <h1 class="h2">Professional guidance and support</h1>
+  <p class="text-body-secondary">Reaching out is a sign of strength. Here is where to start, whatever your situation or budget.</p>
+
+  <div class="alert alert-danger border-2" role="alert">
+    <h2 class="h5">In immediate danger, or thinking about ending your life?</h2>
+    <p class="mb-0">Call <a class="alert-link fw-bold" href="tel:{{ emergency.number }}">{{ emergency.number }}</a> ({{ emergency.name }}) or go to the nearest emergency room. If you can, ask someone to stay with you.</p>
+  </div>
+
+  <h2 class="h4 mt-4">Talk to someone now</h2>
+  <div class="row g-3">
+    {% for h in helplines %}
+    <div class="col-md-4"><div class="card h-100 border-primary"><div class="card-body">
+      <h3 class="h6">{{ h.name }}</h3>
+      <p class="fs-5 mb-1">{% for n in h.numbers %}<a href="tel:{{ n|replace('-', '') }}">{{ n }}</a>{{ ' / ' if not loop.last }}{% endfor %}</p>
+      <p class="small mb-1"><strong>{{ h.hours }}</strong></p>
+      <p class="small text-body-secondary mb-0">{{ h.note }}</p>
+    </div></div></div>
+    {% endfor %}
+  </div>
+  <p class="small text-body-secondary mt-2">Outside India? <a href="https://findahelpline.com" target="_blank" rel="noopener noreferrer">findahelpline.com</a> lists free services by country. Numbers and hours can change, so confirm on the official sites if a call does not connect.</p>
+
+  <div class="row g-4 mt-1">
+    <div class="col-md-6">
+      <h2 class="h4">When to seek professional help</h2>
+      <ul>{% for item in r.WHEN_TO_SEEK_HELP %}<li class="mb-1">{{ item }}</li>{% endfor %}</ul>
+    </div>
+    <div class="col-md-6">
+      <h2 class="h4">Who can help</h2>
+      {% for p in r.PROFESSIONALS %}<p class="mb-2"><strong>{{ p.title }}.</strong> {{ p.text }}</p>{% endfor %}
+    </div>
+  </div>
+
+  <div class="row g-4 mt-1">
+    <div class="col-md-6">
+      <h2 class="h4">Low-cost and accessible options</h2>
+      <ul>{% for item in r.ACCESS_OPTIONS %}<li class="mb-1">{{ item }}</li>{% endfor %}</ul>
+    </div>
+    <div class="col-md-6">
+      <h2 class="h4">Preparing for a first appointment</h2>
+      <ul>{% for item in r.FIRST_APPOINTMENT_TIPS %}<li class="mb-1">{{ item }}</li>{% endfor %}</ul>
+    </div>
+  </div>
+
+  <div class="alert alert-secondary small mt-3" role="note">
+    MindCare is a screening and support tool and does not replace professional care. It does not diagnose conditions or prescribe treatment.
+  </div>
+</div></div>
+{% endblock %}
